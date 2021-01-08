@@ -24,16 +24,35 @@ func init_cells():
 			cell.scale_cell(scale_vector)
 			row_cells.append(cell)
 			if row > 0:
-				var neighbor = cells[row - 1][col]
-				cell.set_top(neighbor)
-				neighbor.set_bot(cell)
+				var top_neighbor = cells[row - 1][col]
+				cell.set_top(top_neighbor)
+				top_neighbor.set_bot(cell)
 			if col > 0:
-				var neighbor = row_cells[col - 1]
-				cell.set_left(neighbor)
-				neighbor.set_right(cell)
+				var left_neighbor = row_cells[col - 1]
+				cell.set_left(left_neighbor)
+				left_neighbor.set_right(cell)
 			add_child(cell)
 		cells.append(row_cells)
-		
+	set_diagonal_neighbors()
+	
+func set_diagonal_neighbors():
+	var botr
+	var botl
+	var topl
+	var topr
+	for row in range(size):
+		for di in range(1, size - row):
+			botr = cells[row + di][di]
+			topl = cells[row + di - 1][di - 1]
+			topl.set_botr(botr)
+			botr.set_topl(topl)
+	for col in range(1, size):
+		for di in range(1, size - col):		
+			botl = cells[col + di][-di]
+			topr = cells[col - di - 1][di + 1]
+			botl.set_topr(topr)
+			topr.set_botl(botl)
+			
 func convert_pos(pos : Vector2) -> Vector2:
 	pos.x = pos.x * cell_dimension + (cell_dimension / 2)
 	pos.y = pos.y * cell_dimension + (cell_dimension / 2)
@@ -61,11 +80,7 @@ func next_gen():
 	var num_dead
 	for row in cells:
 		for cell in row:
-			var count = cell.count_neighbors()
-			if cell.alive:
-				cell.next_state = count == 2 or count == 3
-			else:
-				cell.next_state = count == 3
+			cell.set_next_state()
 	_go_next()		
 			
 			
